@@ -17,4 +17,4 @@ if (major < 8) {
   process.exit(1);
 }
 
-require('./creatReactApp');
+require('./createReactApp');
