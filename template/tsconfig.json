@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "moduleResolution": "node",
+    "outDir": "tslib",
+    "noUnusedLocals": true,
+    "lib": [
+      "es6",
+      "dom"
+    ],
+    "jsx": "react",
+    "allowSyntheticDefaultImports": true,
+    "plugins": [{ "name": "tslint-language-service" }],
+    "skipLibCheck": true,
+    "experimentalDecorators": true,
+    "module": "esNext",
+    "allowUnusedLabels": false
+  },
+  "exclude": [
+    "node_modules",
+    "lib",
+    "tests",
+    "**/*.test.ts"
+  ]
+}
