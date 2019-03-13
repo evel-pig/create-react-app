@@ -1,5 +1,5 @@
 {
-  "name": "@epig/create-react-app",
+  "name": "@epig/create-app",
   "version": "1.0.0",
   "description": "create react app",
   "main": "index.js",
