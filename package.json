@@ -1,6 +1,6 @@
 {
   "name": "@epig/create-react-app",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "create react app",
   "main": "index.js",
   "scripts": {
