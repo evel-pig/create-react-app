@@ -3,7 +3,7 @@
 ## 使用说明
 
 ```bash
-npx @epig/create-react-app my-app
+npx @epig/create-app my-app
 cd my-app
 npm start
 ```
@@ -18,5 +18,5 @@ When you’re ready to deploy to production, create a minified bundle with npm r
 管理后台
 
 ```bash
-npx @epig/create-react-app my-admin-app --admin
+npx @epig/create-app my-admin-app --admin
 ```
