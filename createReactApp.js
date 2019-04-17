@@ -105,6 +105,7 @@ const gitIgnoreFiles = [
   '/dll',
   '.DS_Store',
   'coverage',
+  '.admin-tools',
   'tslib',
 ];
 
@@ -113,6 +114,7 @@ let projectName;
 const program = new commander.Command(packageJson.name)
 .version(packageJson.version)
 .arguments('<project-directory>')
+.option('--admin')
 .usage(`${chalk.green('<project-directory>')} [options]`)
 .action((name) => {
   projectName = name;
@@ -134,9 +136,17 @@ if (typeof projectName === 'undefined') {
   process.exit(1);
 }
 
-createReactApp(projectName);
+console.log('program.admin', program.admin);
 
-function createReactApp(name) {
+let projectType = 'default';
+
+if (program.admin) {
+  projectType = 'admin';
+}
+
+createReactApp(projectName, projectType);
+
+function createReactApp(name, type = 'default') {
   const root = path.resolve(name);
   const appName = path.basename(root);
 
@@ -165,7 +175,19 @@ function createReactApp(name) {
   const originalDirectory = process.cwd();
   process.chdir(root);
 
-  run(root, appName, originalDirectory);
+  let allDependencies = [];
+  switch (type) {
+    case 'default':
+      allDependencies = ['react', 'react-dom', '@babel/polyfill', 'antd', 'classnames', '@epig/luna', 'react-document-title', 'react-router', 'react-router-dom'];
+      break;
+    case 'admin':
+      allDependencies = ['react', 'react-dom', '@babel/polyfill', 'antd', 'classnames', '@epig/admin-tools'];
+      break;
+    default:
+      break;
+  }
+
+  run(type, root, appName, originalDirectory, allDependencies);
 }
 
 function printValidationResults(results) {
@@ -206,12 +228,11 @@ function checkAppName(appName) {
   }
 }
 
-function run(root, appName, originalDirectory) {
-  const allDependencies = ['react', 'react-dom', '@babel/polyfill', 'antd', 'classnames', '@epig/luna', 'react-document-title', 'react-router', 'react-router-dom'];
+function run(projectType, root, appName, originalDirectory, allDependencies) {
   const allDevdependencies = ['typescript', '@epig/af-build-dev', ...devDependencies];
 
   console.log('Copy files from template');
-  copy([path.join(__dirname, 'template/**/*'), path.join(__dirname, 'template/**/.*')], root, (err) => {
+  copy([path.join(__dirname, `/template/${projectType}/**/*`), path.join(__dirname, `template/${projectType}/**/.*`)], root, (err) => {
     if (err) {
       console.log();
       console.log('Copy files has failed');
@@ -227,7 +248,10 @@ function run(root, appName, originalDirectory) {
     console.log();
 
     try {
-      const entryConfigPath = path.join(root, 'src/index.tsx');
+      let entryConfigPath = path.join(root, 'src/index.tsx');
+      if (projectType === 'admin') {
+        entryConfigPath = path.join(root, 'src/entry.config.ts');
+      }
       let entryConfigContent = fs.readFileSync(entryConfigPath, 'utf-8');
       entryConfigContent = entryConfigContent.replace('<%= appName %>', () => appName);
       fs.writeFileSync(entryConfigPath, entryConfigContent, { encoding: 'utf-8' });
@@ -398,6 +422,8 @@ function initialCommit() {
       return new Error(`${c} ${a.join(' ')}`);
     }
 
+    let error = null;
+
     try {
       const result1 = spawn.sync(command, args, { stdio: 'inherit' });
       if (result1.status === 0) {
@@ -408,13 +434,21 @@ function initialCommit() {
         ];
         const result2 = spawn.sync(command, args, { stdio: 'inherit' });
         if (result2.status !== 0) {
-          reject(getError(command, args));
+          error = getError(command, args);
+          // reject(getError(command, args));
         }
       } else {
-        reject(getError(command, args));
+        error = getError(command, args);
+        // reject(getError(command, args));
       }
     } catch (err) {
-      reject(getError(command, args));
+      error = getError(command, args);
+      // reject(getError(command, args));
+    }
+
+    if (error) {
+      console.log('git initial commit faild');
+      console.log(error);
     }
 
     resolve();

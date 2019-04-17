@@ -12,3 +12,11 @@ npm start
 
 Then open <http://localhost:8000> to see your app.
 When you’re ready to deploy to production, create a minified bundle with npm run build.
+
+## options
+
+管理后台
+
+```bash
+npx @epig/create-react-app my-admin-app --admin
+```
