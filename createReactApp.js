@@ -176,18 +176,24 @@ function createReactApp(name, type = 'default') {
   process.chdir(root);
 
   let allDependencies = [];
+  let buildInDependencies = ['src/util', 'src/components'];
   switch (type) {
     case 'default':
-      allDependencies = ['react', 'react-dom', '@babel/polyfill', 'antd', 'classnames', '@epig/luna', 'react-document-title', 'react-router', 'react-router-dom'];
+      allDependencies = ['react', 'react-dom', 'antd', 'classnames', 'react-document-title', 'react-router', 'react-router-dom', 'isomorphic-fetch', 'es6-promise'];
       break;
     case 'admin':
       allDependencies = ['react', 'react-dom', '@babel/polyfill', 'antd', 'classnames', '@epig/admin-tools'];
+      buildInDependencies = buildInDependencies.concat(['src/models']);
+      break;
+    case 'luna':
+      allDependencies = ['react', 'react-dom', '@babel/polyfill', 'antd', 'classnames', '@epig/luna', 'react-document-title', 'react-router', 'react-router-dom'];
+      buildInDependencies = buildInDependencies.concat(['src/models']);
       break;
     default:
       break;
   }
 
-  run(type, root, appName, originalDirectory, allDependencies);
+  run(type, root, appName, originalDirectory, allDependencies, buildInDependencies);
 }
 
 function printValidationResults(results) {
@@ -228,7 +234,7 @@ function checkAppName(appName) {
   }
 }
 
-function run(projectType, root, appName, originalDirectory, allDependencies) {
+function run(projectType, root, appName, originalDirectory, allDependencies, buildInDependencies) {
   const allDevdependencies = ['typescript', '@epig/af-build-dev', ...devDependencies];
 
   console.log('Copy files from template');
@@ -276,7 +282,6 @@ function run(projectType, root, appName, originalDirectory, allDependencies) {
       return install(root, allDevdependencies, true).then(() => { return ''; });
     })
     .then(() => {
-      const buildInDependencies = ['src/util', 'src/models', 'src/components'];
       return install(root, buildInDependencies, false).then(() => '');
     })
     .then(() => {

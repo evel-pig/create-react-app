@@ -10,6 +10,11 @@ const config = {
     config.resolve.modules.add('styles');
     config.optimization.splitChunks({
       cacheGroups: {
+        ['vendor']: {
+          test: /[\\/]node_modules[\\/](?!@epig\/luna)/,
+          name: 'vendor',
+          chunks: 'all',
+        },
         commons: {
           name: 'commons',
           chunks: 'async',

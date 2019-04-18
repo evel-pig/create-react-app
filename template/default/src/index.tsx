@@ -1,32 +1,18 @@
 import React from 'react';
-import App from '@epig/luna';
+import ReactDOM from 'react-dom';
 import Root from './router';
-import { reducers, sagas } from './models';
 import './styles/index.less';
 import { getApiUrl } from '@app/util/common';
-import '@babel/polyfill';
+import api from '@app/util/api';
 
-const app = new App({
-  model: {
-    basePath: getApiUrl,
-  },
-  store: {
-    middlewares: [],
-  },
-  render: () => {
-    return (
-      <Root />
-    );
-  },
-  persistConfig: {
-    key: '<%= appName %>',
-  },
-});
+api.setBasePath(getApiUrl);
 
-app.model(reducers, {
-  ...sagas,
-});
+ReactDOM.render(
+  <Root />,
+  document.getElementById('root'),
+);
 
-app.persist();
-
-app.start('root');
+declare const module: any;
+if (module.hot) {
+  module.hot.accept();
+}
