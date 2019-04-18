@@ -139,12 +139,13 @@ if (typeof projectName === 'undefined') {
 }
 
 let projectType = 'default';
+let mobile = false;
 
 if (program.admin) {
   projectType = 'admin';
 }
 if (program.mobile) {
-  projectType = 'mobile';
+  mobile = true;
 }
 if (program.luna) {
   projectType = 'luna';
@@ -195,14 +196,18 @@ async function createReactApp(name, type = 'default') {
       allDependencies = ['react', 'react-dom', '@babel/polyfill', 'antd', 'classnames', '@epig/luna', 'react-document-title', 'react-router', 'react-router-dom'];
       buildInDependencies = buildInDependencies.concat(['src/models']);
       break;
-    case 'mobile':
-      allDependencies = ['react', 'react-dom', 'antd', 'classnames', 'react-document-title', 'react-router', 'react-router-dom', 'isomorphic-fetch', 'es6-promise'];
-      break;
     default:
       break;
   }
 
-  console.log('project type: ', type);
+  if (isMobile()) {
+    const antdIndex = allDependencies.indexOf('antd');
+    if (antdIndex >= 0) {
+      allDependencies.splice(antdIndex, 1, 'antd-mobile');
+    }
+  }
+
+  console.log('project type:', type);
 
   await run(type, root, appName, originalDirectory, allDependencies, buildInDependencies);
 }
@@ -251,10 +256,10 @@ async function run(projectType, root, appName, originalDirectory, allDependencie
 
   console.log('Copy files from template');
   try {
-    if (projectType === 'mobile') {
-      await copyFiles([path.join(__dirname, `/template/default/**/*`), path.join(__dirname, `/template/default/**/.*`)], root);
-    }
     await copyFiles([path.join(__dirname, `/template/${projectType}/**/*`), path.join(__dirname, `/template/${projectType}/**/.*`)], root);
+    if (isMobile()) {
+      await copyFiles([path.join(__dirname, `/template/mobile/**/*`), path.join(__dirname, `/template/mobile/**/.*`)], root);
+    }
   } catch (err) {
     console.log();
     console.log('Copy files has failed');
@@ -543,4 +548,8 @@ async function copyFiles(paths, dest) {
       resolve();
     });
   });
+}
+
+function isMobile() {
+  return projectType !== 'admin' && mobile;
 }
