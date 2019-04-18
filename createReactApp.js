@@ -115,6 +115,8 @@ const program = new commander.Command(packageJson.name)
 .version(packageJson.version)
 .arguments('<project-directory>')
 .option('--admin')
+.option('--mobile')
+.option('--luna')
 .usage(`${chalk.green('<project-directory>')} [options]`)
 .action((name) => {
   projectName = name;
@@ -136,17 +138,21 @@ if (typeof projectName === 'undefined') {
   process.exit(1);
 }
 
-console.log('program.admin', program.admin);
-
 let projectType = 'default';
 
 if (program.admin) {
   projectType = 'admin';
 }
+if (program.mobile) {
+  projectType = 'mobile';
+}
+if (program.luna) {
+  projectType = 'luna';
+}
 
 createReactApp(projectName, projectType);
 
-function createReactApp(name, type = 'default') {
+async function createReactApp(name, type = 'default') {
   const root = path.resolve(name);
   const appName = path.basename(root);
 
@@ -189,11 +195,16 @@ function createReactApp(name, type = 'default') {
       allDependencies = ['react', 'react-dom', '@babel/polyfill', 'antd', 'classnames', '@epig/luna', 'react-document-title', 'react-router', 'react-router-dom'];
       buildInDependencies = buildInDependencies.concat(['src/models']);
       break;
+    case 'mobile':
+      allDependencies = ['react', 'react-dom', 'antd', 'classnames', 'react-document-title', 'react-router', 'react-router-dom', 'isomorphic-fetch', 'es6-promise'];
+      break;
     default:
       break;
   }
 
-  run(type, root, appName, originalDirectory, allDependencies, buildInDependencies);
+  console.log('project type: ', type);
+
+  await run(type, root, appName, originalDirectory, allDependencies, buildInDependencies);
 }
 
 function printValidationResults(results) {
@@ -234,76 +245,80 @@ function checkAppName(appName) {
   }
 }
 
-function run(projectType, root, appName, originalDirectory, allDependencies, buildInDependencies) {
+async function run(projectType, root, appName, originalDirectory, allDependencies
+, buildInDependencies) {
   const allDevdependencies = ['typescript', '@epig/af-build-dev', ...devDependencies];
 
   console.log('Copy files from template');
-  copy([path.join(__dirname, `/template/${projectType}/**/*`), path.join(__dirname, `template/${projectType}/**/.*`)], root, (err) => {
-    if (err) {
-      console.log();
-      console.log('Copy files has failed');
-      console.log(err);
-
-      const knownGeneratedFiles = [...templateGeneratedFiles, 'package.json'];
-      exit(root, appName, knownGeneratedFiles);
+  try {
+    if (projectType === 'mobile') {
+      await copyFiles([path.join(__dirname, `/template/default/**/*`), path.join(__dirname, `/template/default/**/.*`)], root);
     }
+    await copyFiles([path.join(__dirname, `/template/${projectType}/**/*`), path.join(__dirname, `/template/${projectType}/**/.*`)], root);
+  } catch (err) {
+    console.log();
+    console.log('Copy files has failed');
+    console.log(err);
 
-    fs.writeFileSync(path.join(root, '.gitignore'), gitIgnoreFiles.join('\r\n'));
+    const knownGeneratedFiles = [...templateGeneratedFiles, 'package.json'];
+    exit(root, appName, knownGeneratedFiles);
+  }
 
-    console.log('Copy files complete');
+  fs.writeFileSync(path.join(root, '.gitignore'), gitIgnoreFiles.join('\r\n'));
+
+  console.log('Copy files complete');
+  console.log();
+
+  try {
+    let entryConfigPath = path.join(root, 'src/index.tsx');
+    if (projectType === 'admin') {
+      entryConfigPath = path.join(root, 'src/entry.config.ts');
+    }
+    let entryConfigContent = fs.readFileSync(entryConfigPath, 'utf-8');
+    entryConfigContent = entryConfigContent.replace('<%= appName %>', () => appName);
+    fs.writeFileSync(entryConfigPath, entryConfigContent, { encoding: 'utf-8' });
+  } catch (err) {
+    console.log();
+    console.log('Generate index.tsx has faild');
+    console.log(err.message);
+
+    const knownGeneratedFiles = [...templateGeneratedFiles, 'package.json'];
+    exit(root, appName, knownGeneratedFiles);
+  }
+
+  console.log('Installing packages. This might take a couple of minutes.');
+  /**
+   * 要在安装依赖前执行git初始化，不然提交前检查不起作用
+   */
+
+  initGit().then(() => {
+    return install(root, allDependencies, false);
+  })
+  .then(() => {
+    return install(root, allDevdependencies, true).then(() => { return ''; });
+  })
+  .then(() => {
+    return install(root, buildInDependencies, false).then(() => '');
+  })
+  .then(() => {
+    return initialCommit();
+  })
+  .then(() => {
+    success(root, appName, originalDirectory);
+  })
+  .catch(error => {
+    console.log();
+    console.log('Aborting installation.');
+    if (error.message) {
+      console.log(`  ${chalk.cyan(error.message)} has failed.`);
+    } else {
+      console.log(chalk.red('Unexpected error. Please report it as a bug:'));
+      console.log(error.message);
+    }
     console.log();
 
-    try {
-      let entryConfigPath = path.join(root, 'src/index.tsx');
-      if (projectType === 'admin') {
-        entryConfigPath = path.join(root, 'src/entry.config.ts');
-      }
-      let entryConfigContent = fs.readFileSync(entryConfigPath, 'utf-8');
-      entryConfigContent = entryConfigContent.replace('<%= appName %>', () => appName);
-      fs.writeFileSync(entryConfigPath, entryConfigContent, { encoding: 'utf-8' });
-    } catch (err) {
-      console.log();
-      console.log('Generate index.tsx has faild');
-      console.log(err.message);
-
-      const knownGeneratedFiles = [...templateGeneratedFiles, 'package.json'];
-      exit(root, appName, knownGeneratedFiles);
-    }
-
-    console.log('Installing packages. This might take a couple of minutes.');
-    /**
-     * 要在安装依赖前执行git初始化，不然提交前检查不起作用
-     */
-
-    initGit().then(() => {
-      return install(root, allDependencies, false);
-    })
-    .then(() => {
-      return install(root, allDevdependencies, true).then(() => { return ''; });
-    })
-    .then(() => {
-      return install(root, buildInDependencies, false).then(() => '');
-    })
-    .then(() => {
-      return initialCommit();
-    })
-    .then(() => {
-      success(root, appName, originalDirectory);
-    })
-    .catch(error => {
-      console.log();
-      console.log('Aborting installation.');
-      if (error.message) {
-        console.log(`  ${chalk.cyan(error.message)} has failed.`);
-      } else {
-        console.log(chalk.red('Unexpected error. Please report it as a bug:'));
-        console.log(error.message);
-      }
-      console.log();
-
-      const knownGeneratedFiles = [...templateGeneratedFiles, 'package.json', 'node_modules', 'package-lock.json', 'tslib'];
-      exit(root, appName, knownGeneratedFiles);
-    });
+    const knownGeneratedFiles = [...templateGeneratedFiles, 'package.json', 'node_modules', 'package-lock.json', 'tslib'];
+    exit(root, appName, knownGeneratedFiles);
   });
 }
 
@@ -416,7 +431,7 @@ function initGit() {
 }
 
 function initialCommit() {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     const command = 'git';
     let args = [
       'add',
@@ -517,4 +532,15 @@ function isSafeToCreateProjectIn(root, name) {
     });
   });
   return true;
+}
+
+async function copyFiles(paths, dest) {
+  return new Promise((resolve, reject) => {
+    copy(paths, dest, err => {
+      if (err) {
+        reject(err);
+      }
+      resolve();
+    });
+  });
 }

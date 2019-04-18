@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <title></title>
+  <script type="text/javascript" src="https://as.alipayobjects.com/g/component/fastclick/1.0.6/fastclick.js"></script>
+  <script>
+    (function () {
+      var baseFontSize = 100;
+      var dpr = Math.min(window.devicePixelRatio, 3);
+      var scale = 1 / dpr;
+      console.log(scale);
+      var docEle = document.documentElement;
+      docEle.dataset.dpr = dpr;
+      var metaEle = document.createElement('meta');
+      metaEle.setAttribute('name', 'viewport');
+      metaEle.setAttribute('content', 'width=device-width,initial-scale=' + scale + ',maximum-scale=' + scale + ',user-scalable=no,viewport-fit=cover');
+      document.head.appendChild(metaEle);
+      var pixelRatioScale = 1;
+      if (window.devicePixelRatio == 3.5) {
+        pixelRatioScale = 0.877;
+      }
+      function recalCulate() {
+        var windowWidth = window.screen.width * dpr;
+        var width = windowWidth <= docEle.clientWidth ? windowWidth : docEle.clientWidth;
+        var fontSize = baseFontSize * (width / 750) * pixelRatioScale;
+        docEle.style.fontSize = fontSize + 'px';
+      }
+      recalCulate();
+      if ("addEventListener" in window) {
+        var resizeEvent = 'orientationchange' in window ? 'orientationchange' : 'resize';
+        window.addEventListener(resizeEvent, recalCulate, false);
+        window.addEventListener('DOMContentLoaded', function () {
+          FastClick.attach(document.body); recalCulate()
+        }, false)
+      }
+    }());
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+</body>
+
+</html>

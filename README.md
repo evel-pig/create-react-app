@@ -15,6 +15,18 @@ When you’re ready to deploy to production, create a minified bundle with npm r
 
 ## options
 
+移动端
+
+```bash
+npx @epig/create-app my-app-m --mobile
+```
+
+[@epig/luna](https://github.com/evel-pig/luna)
+
+```bash
+npx @epig/create-app my-app-m --luna
+```
+
 管理后台
 
 ```bash
