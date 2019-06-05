@@ -280,8 +280,14 @@ async function run(projectType, root, appName, originalDirectory, allDependencie
       entryConfigPath = path.join(root, 'src/entry.config.ts');
     }
     let entryConfigContent = fs.readFileSync(entryConfigPath, 'utf-8');
-    entryConfigContent = entryConfigContent.replace('<%= appName %>', () => appName);
+    entryConfigContent = entryConfigContent.replace(/<%= appName %>/ig, () => appName);
     fs.writeFileSync(entryConfigPath, entryConfigContent, { encoding: 'utf-8' });
+    if (projectType === 'admin') {
+      const dockerComposeYmlPath = path.join(root, 'docker-compose.yml');
+      let dockerComposeYmlContent = fs.readFileSync(dockerComposeYmlPath, 'utf-8');
+      dockerComposeYmlContent = dockerComposeYmlContent.replace(/<%= appName %>/ig, () => appName);
+      fs.writeFileSync(dockerComposeYmlPath, dockerComposeYmlContent, { encoding: 'utf-8' });
+    }
   } catch (err) {
     console.log();
     console.log('Generate index.tsx has faild');

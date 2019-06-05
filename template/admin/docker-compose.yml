@@ -2,9 +2,9 @@ version: '3'
 services:
   web:
     #build: .
-    image: "admin-test"
+    image: "<%= appName %>"
     volumes:
-     - ./logs/admin-test:/root/.pm2/logs
+     - ./logs/<%= appName %>:/root/.pm2/logs
     environment:
      - API_SERVER=xxx.xxx.xxx.xxx:8000
      - API_PATH=/admin
