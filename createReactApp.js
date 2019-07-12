@@ -107,6 +107,7 @@ const gitIgnoreFiles = [
   'coverage',
   '.admin-tools',
   'tslib',
+  'buildcache',
 ];
 
 let projectName;

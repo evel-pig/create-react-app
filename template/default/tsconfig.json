@@ -14,7 +14,9 @@
     "skipLibCheck": true,
     "experimentalDecorators": true,
     "module": "esNext",
-    "allowUnusedLabels": false
+    "allowUnusedLabels": false,
+    "incremental": true,
+    "tsBuildInfoFile": "./buildcache/front-end"
   },
   "exclude": [
     "node_modules",
