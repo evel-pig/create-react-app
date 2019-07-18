@@ -1,14 +1,11 @@
 const path = require('path');
 
 const config = {
-  outputPath: 'dist/static',
+  gzip: true,
   plugins: [
-    ['epig-plugin-html', { inject: true, template: path.resolve('./public/index.html') }],
-    ['epig-plugin-copy-server', { output: 'dist' }],
-  ],
-  chainWebpack: (config, { webpack }) => {
-    config.resolve.modules.add('styles');
-    config.optimization.splitChunks({
+    ['epig-plugin-html', {}],
+    ['epig-plugin-copy-server', {}],
+    ['epig-plugin-split-chunks', {
       cacheGroups: {
         commons: {
           name: 'commons',
@@ -18,8 +15,8 @@ const config = {
           priority: 1,
         },
       },
-    });
-  },
+    }]
+  ],
 };
 
 module.exports = config;

@@ -7,18 +7,19 @@ const API_SERVER = process.env.API_SERVER ? process.env.API_SERVER : '127.0.0.1:
 const API_PATH = process.env.API_PATH ? process.env.API_PATH : '/channel/merch';
 const HTTPS = process.env.HTTPS ? process.env.HTTPS === 'true' ? true : false : false;
 const TIMEOUT = 60000;
-var express   = require('express'),
-    proxy = require('express-http-proxy'),
-    path = require('path'),
-    app = express();
+var express = require('express'),
+  proxy = require('express-http-proxy'),
+  expressStaticGzip = require('express-static-gzip'),
+  path = require('path'),
+  app = express();
 
 function getClientIp(req) {
-var headers = req.headers;
-var ip = headers['x-real-ip'] || headers['x-forwarded-for'] || req.connection.remoteAddress;
-return ip;
+  var headers = req.headers;
+  var ip = headers['x-real-ip'] || headers['x-forwarded-for'] || req.connection.remoteAddress;
+  return ip;
 }
 
-app.use(express.static(path.join(__dirname, 'static')));
+app.use(expressStaticGzip(path.join(__dirname, 'static')));
 app.use(bodyParser.urlencoded({ extended: false, limit: '100mb' }));
 app.use(bodyParser.json({ limit: '100mb' }));
 app.use('*', (req, res, next) => {
@@ -28,11 +29,11 @@ app.use('*', (req, res, next) => {
   next();
 });
 app.use('/api', proxy(API_SERVER, {
-   timeout: TIMEOUT,
-   https: HTTPS,
-   forwardPath: function(req, res) {
-     return API_PATH + require('url').parse(req.url).path;
-   }
+  timeout: TIMEOUT,
+  https: HTTPS,
+  forwardPath: function (req, res) {
+    return API_PATH + require('url').parse(req.url).path;
+  }
 }));
 app.get('*', function response(req, res) {
   res.sendFile(path.join(__dirname, '/static/index.html'));
@@ -40,13 +41,13 @@ app.get('*', function response(req, res) {
 
 app.use((err, req, res, next) => {
   let date = new Date();
-  var meta = '[' + date.toISOString() +']' + req.url + '\n';
+  var meta = '[' + date.toISOString() + ']' + req.url + '\n';
   console.log(meta + err.stack + '\n');
   next();
 });
 
-var server = app.listen(process.env.PORT||8000, '0.0.0.0', function () {
-  console.log('app listening on port ', process.env.PORT||8000);
+var server = app.listen(process.env.PORT || 8000, '0.0.0.0', function () {
+  console.log('app listening on port ', process.env.PORT || 8000);
 });
 
 
