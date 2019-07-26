@@ -190,11 +190,11 @@ async function createReactApp(name, type = 'default') {
       allDependencies = ['react', 'react-dom', 'antd', 'classnames', 'react-document-title', 'react-router', 'react-router-dom', 'isomorphic-fetch', 'es6-promise'];
       break;
     case 'admin':
-      allDependencies = ['react', 'react-dom', '@babel/polyfill', 'antd', 'classnames', '@epig/admin-tools'];
+      allDependencies = ['react', 'react-dom', 'antd', 'classnames', '@epig/admin-tools'];
       buildInDependencies = buildInDependencies.concat(['src/models']);
       break;
     case 'luna':
-      allDependencies = ['react', 'react-dom', '@babel/polyfill', 'antd', 'classnames', '@epig/luna', 'react-document-title', 'react-router', 'react-router-dom'];
+      allDependencies = ['react', 'react-dom', 'antd', 'classnames', '@epig/luna', 'react-document-title', 'react-router', 'react-router-dom'];
       buildInDependencies = buildInDependencies.concat(['src/models']);
       break;
     default:

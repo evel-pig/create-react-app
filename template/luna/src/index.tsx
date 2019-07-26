@@ -4,7 +4,6 @@ import Root from './router';
 import { reducers, sagas } from './models';
 import './styles/index.less';
 import { getApiUrl } from '@app/util/common';
-import '@babel/polyfill';
 
 const app = new App({
   model: {
@@ -30,3 +29,8 @@ app.model(reducers, {
 app.persist();
 
 app.start('root');
+
+declare const module: any;
+if (module.hot) {
+  module.hot.accept();
+}
