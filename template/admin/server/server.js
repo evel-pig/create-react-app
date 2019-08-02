@@ -1,14 +1,13 @@
 'use strict';
 
 var bodyParser = require('body-parser');
-var request = require('request');
 
 const API_SERVER = process.env.API_SERVER ? process.env.API_SERVER : '127.0.0.1:8000';
 const API_PATH = process.env.API_PATH ? process.env.API_PATH : '/channel/merch';
 const HTTPS = process.env.HTTPS ? process.env.HTTPS === 'true' ? true : false : false;
 const TIMEOUT = 60000;
 var express = require('express'),
-  proxy = require('express-http-proxy'),
+  proxy = require('http-proxy-middleware'),
   expressStaticGzip = require('express-static-gzip'),
   path = require('path'),
   app = express();
@@ -21,19 +20,21 @@ function getClientIp(req) {
 
 app.use(expressStaticGzip(path.join(__dirname, 'static')));
 app.use(bodyParser.urlencoded({ extended: false, limit: '100mb' }));
-app.use(bodyParser.json({ limit: '100mb' }));
 app.use('*', (req, res, next) => {
   req.body = JSON.stringify(req.body);
   let clientIp = getClientIp(req);
   req.headers['client_ip'] = clientIp;
   next();
 });
-app.use('/api', proxy(API_SERVER, {
+let apiServer = API_SERVER;
+if (apiServer.indexOf('http') < 0) {
+  apiServer = `${HTTPS ? 'https' : 'http'}://${apiServer}`;
+}
+app.use('/api', proxy({
+  target: apiServer,
   timeout: TIMEOUT,
-  https: HTTPS,
-  forwardPath: function (req, res) {
-    return API_PATH + require('url').parse(req.url).path;
-  }
+  changeOrigin: true,
+  pathRewrite: { [`^/api`]: API_PATH },
 }));
 app.get('*', function response(req, res) {
   res.sendFile(path.join(__dirname, '/static/index.html'));
