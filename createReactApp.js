@@ -184,7 +184,7 @@ async function createReactApp(name, type = 'default') {
   process.chdir(root);
 
   let allDependencies = [];
-  let buildInDependencies = ['src/util', 'src/components'];
+  let buildInDependencies = ['src/util', 'src/components', 'src/hooks'];
   switch (type) {
     case 'default':
       allDependencies = ['react', 'react-dom', 'antd', 'classnames', 'react-document-title', 'react-router', 'react-router-dom', 'isomorphic-fetch', 'es6-promise'];
