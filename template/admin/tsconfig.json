@@ -3,7 +3,7 @@
     "outDir": "./tslib/",
     "sourceMap": true,
     "target": "es5",
-    "jsx": "react",
+    "jsx": "preserve",
     "moduleResolution": "node",
     "plugins": [{ "name": "tslint-language-service" }],
     "noUnusedLocals": true,
