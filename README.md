@@ -29,7 +29,7 @@ npx @epig/create-app my-app-m --mobile
 npx @epig/create-app my-app-m --luna --mobile
 ```
 
-管理后台([使用说明看这里](https://github.com/evel-pig/create-admin-app))
+管理后台([使用说明看这里](./docs/admin.md))
 
 ```bash
 npx @epig/create-app my-admin-app --admin
