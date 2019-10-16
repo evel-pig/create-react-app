@@ -28,6 +28,7 @@ When you’re ready to deploy to production, create a minified bundle with npm r
 │   └── server.js
 ├── src  源代码
 │   ├── app.less  公共样式
+│   ├── commonContainers 公共容器  
 │   ├── components  组件库
 │   ├── containers  容器（渲染层）
 │   │   └── package.json
@@ -80,24 +81,65 @@ When you’re ready to deploy to production, create a minified bundle with npm r
 ```typescript
 
 import * as React from 'react';
-import BasicComponent from '@epig/admin-tools/lib/components/BasicComponent';
-import model, { UserState } from 'models/system/users';
+import model, { UserState } from '@app/models/system/users';
 
 export interface UserProps {
   users: UserState;
   usersActions: typeof model.actions;
 }
 
-class User extends BasicComponent<UserProps, any> {
-  render() {
-    return (
-      <div>
-        User
-      </div>
-    );
-  }
+export default function User(props: UserProps) {
+  return (
+    <div>
+      User
+    </div>
+  );
+}
+```
+
+#### 公共容器（commonContainers）
+
+如果多个容器用共用一个子容器，可以将子容器放到 `commonContainers`，`containers` 里面所有容器都能访问
+
+```text
+└── commonContainers
+    └── UserInfo
+        └── index.tsx
+└── containers
+    └── System
+        └── Users
+            ├── index.tsx
+            └── model.ts
+```
+
+`/System/Users/index.tsx` 打开 `UserInfo`:
+
+```typescript
+import * as React from 'react';
+import BasicComponent from '@epig/admin-tools/lib/components/BasicComponent';
+import model, { UserState } from '@app/models/system/users';
+import useContainer from '@epig/admin-tools/lib/hooks/useContainer';
+
+export interface UserProps {
+  users: UserState;
+  usersActions: typeof model.actions;
 }
 
+export default function User(props: UserProps) {
+  const { push } = useContainer();
+
+  return (
+    <div
+      onClick={() => {
+        push({
+          componentName: 'UserInfo',
+        });
+      }}
+    >
+      User
+    </div>
+  );
+}
 ```
 
 ### 数据层（models）
@@ -112,7 +154,7 @@ users model 示例：
 
 ```typescript
 
-import { createModel } from '@epig/admin-tools-lib/model';
+import { createModel } from '@epig/admin-tools/lib/model';
 
 export interface UsersState {
   loading: boolean;
@@ -165,4 +207,3 @@ export default model;
 
 - 代码块 [vscode-react-typescript](https://github.com/infeng/vscode-react-typescript)
 - 代码块 [vscode-admin](https://github.com/infeng/vscode-admin)
-- model创建工具 [@epig/admin-tools](https://github.com/evel-pig/admin-tools#%E5%88%9B%E5%BB%BAmodel)
